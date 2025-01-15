@@ -1,74 +1,100 @@
 package com.example.brightClean.service.impl;
 
+import com.example.brightClean.domain.User;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
 import com.example.brightClean.util.JWTConstant;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class JwtService {
-    // private final SecretKey secretKey;
-    // private final int validSeconds;
-    // private final JwtParser jwtParser;
 
-    // public JwtService(String secretKeyStr, int validSeconds) {
-    // this.secretKey = Keys.hmacShaKeyFor(secretKeyStr.getBytes());
-    // this.jwtParser = Jwts.parser().verifyWith(secretKey).build();
-    // this.validSeconds = validSeconds;
-    // }
+    private final SecretKey jwtKey;
+    private final SecretKey mailKey;
+    private final SecretKey registerKey;
+    private final Set<String> invalidatedTokens = new HashSet<>();
 
-    // public String createLoginAccessToken(MemberUserDetails user) {
-    // var expirationMillis = Instant.now()
-    // .plusSeconds(validSeconds)
-    // .getEpochSecond()
-    // * 1000;
-
-    // var claims = Jwts.claims()
-    // .subject(user.getId())
-    // .issuedAt(new Date())
-    // .expiration(new Date(expirationMillis))
-    // .add("nickname", user.getNickname())
-    // .add("username", user.getUsername())
-    // .add("authorities", user.getMemberAuthorities())
-    // .build();
-
-    // return Jwts.builder()
-    // .claims(claims)
-    // .signWith(secretKey)
-    // .compact();
-    // }
-
-    // public Claims parseToken(String jwt) throws JwtException {
-    // return jwtParser.parseSignedClaims(jwt).getPayload();
-    // }
-    SecretKey key = Keys.hmacShaKeyFor(JWTConstant.SECRET != null ? JWTConstant.SECRET.getBytes() : null);
-
-    // 初始化密鑰
     public JwtService() {
-        if (JWTConstant.SECRET == null) {
-            throw new IllegalStateException("JWT secret cannot be null");
-        }
-        this.key = Keys.hmacShaKeyFor(JWTConstant.SECRET.getBytes());
+        this.jwtKey = Keys.hmacShaKeyFor(JWTConstant.SECRET.getBytes());
+        this.mailKey = Keys.hmacShaKeyFor(JWTConstant.M_SECRET.getBytes());
+        this.registerKey = Keys.hmacShaKeyFor(JWTConstant.REGISTER_CONSTANT.getBytes());
     }
 
-    public String generateToken(String email, int hour, int min) {
+    public String generateToken(User user, int hours, int minutes, String type) {
+        String email = user.getEmail();
+        SecretKey key = getKeyByType(type);
         return Jwts.builder()
+                .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + (hour * 60 * 60 * 1000) + (min * 60 * 1000)))
-                .claim("email", email)
+                .setExpiration(new Date(System.currentTimeMillis() + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)))
                 .signWith(key)
                 .compact();
     }
 
-    public String getEmailFromJWT(String jwt) {
-        if (jwt.startsWith("Bearer ")) {
-            jwt = jwt.substring("Bearer ".length());
+    public void markTokenAsUsed(String token, String type) {
+        if (token == null || token.isEmpty()) {
+            System.err.println("試圖標記無效的 Token，但 Token 為空！");
+            return;
         }
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
-        return String.valueOf(claims.get("email"));
+
+        if ("MAIL".equals(type) || "REGISTER".equals(type)) {
+            // 標記特定類型的 Token 為無效
+            invalidatedTokens.add(token);
+            System.out.println("已標記為無效的 " + type + " Token: " + token);
+        } else {
+            System.err.println("未知的 Token 類型: " + type);
+        }
     }
 
+    public boolean isTokenInvalid(String token, String type) {
+        try {
+            SecretKey key = getKeyByType(type);
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+
+            // 若 Token 已過期或已被標記為無效
+            return claims.getExpiration().before(new Date()) || invalidatedTokens.contains(token);
+        } catch (JwtException e) {
+
+            return true;
+        }
+    }
+
+    private SecretKey getKeyByType(String type) {
+        switch (type) {
+            case "MAIL":
+                return mailKey;
+            case "REGISTER":
+                return registerKey;
+            case "JWT":
+                return jwtKey;
+            default:
+                throw new IllegalArgumentException("Invalid token type: " + type);
+        }
+    }
+
+    public String getEmailFromJWT(String token, String type) {
+        SecretKey key;
+        switch (type) {
+            case "MAIL":
+                key = mailKey;
+                break;
+            case "REGISTER":
+                key = registerKey;
+                break;
+            default:
+                key = jwtKey;
+        }
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
+    }
 }

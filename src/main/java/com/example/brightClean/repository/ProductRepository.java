@@ -8,10 +8,13 @@ import java.util.List;
 import com.example.brightClean.domain.Product;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product,Integer>{
+public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     public List<Product> findAllByOrderBySalesDesc();
 
     @Query("SELECT p FROM Product p WHERE p.type = :type")
-    public List<Product> findProductByType(@Param("type") String type);   
+    public List<Product> findProductByType(@Param("type") String type);
+
+    List<Product> findByNameContainingIgnoreCase(String keyword);
+
 }

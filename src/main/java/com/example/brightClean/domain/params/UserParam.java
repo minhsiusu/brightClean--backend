@@ -13,7 +13,7 @@ import lombok.ToString;
 public class UserParam {
 
     @NotBlank(message = "名稱不為空")
-    @Size( max = 10)
+    @Size(max = 10)
     private String name;
 
     @NotBlank(message = "帳戶不為空")
@@ -21,7 +21,7 @@ public class UserParam {
     private String account;
 
     @NotBlank(message = "密碼不為空")
-    @Size(min = 3,max = 10 ,message = "密碼長度需在3~10之間")
+    @Size(min = 3, max = 10, message = "密碼長度需在3~10之間")
     @Pattern(regexp = "^[A-Za-z0-9]+$")
     private String password;
 
@@ -31,6 +31,6 @@ public class UserParam {
 
     @NotBlank(message = "手機不為空")
     private String cellPhone;
-    
+
     private String address;
 }

@@ -5,15 +5,17 @@ import java.util.Optional;
 import com.example.brightClean.domain.Product;
 
 public interface ProductService {
-    Product create (Product product);
+    Product create(Product product);
 
     Optional<Product> findProductById(int id);
 
     List<Product> findProducts();
 
-    void update(Product product)throws Exception;
+    void update(Product product) throws Exception;
 
     List<Product> findProductsByType(String type);
 
     List<Product> findProductsBySalses();
+
+    List<Product> searchProducts(String keyword);
 }

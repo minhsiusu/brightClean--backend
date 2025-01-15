@@ -24,15 +24,19 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,
+            JWTAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         httpSecurity
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 啟用 CORS
-                .csrf(csrf -> csrf.disable()) // 禁用 CSRF
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 無狀態會話
-                .addFilterBefore(new JWTAuthenticationFilter(), BasicAuthenticationFilter.class)// 增加filter過濾 jwttoken
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter, BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/user/login", "/user/register", "/user/forget", "/product/**").permitAll()// 通過
-                        .requestMatchers("/cart/**", "/user/forget/**").authenticated()// 需驗證
+                        .requestMatchers("/user/login", "/user/register", "/user/forget", "/user/reset-password",
+                                "/register/complete",
+                                "/user/logout")
+                        .permitAll()
+                        .requestMatchers("/cart/**").authenticated()
                         .anyRequest().permitAll());
 
         return httpSecurity.build();
@@ -41,13 +45,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        // 設置允許的標頭
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization", "Cache-Control", "Content-Type", "Cookie"));
-        // 設置是否允許 Cookie
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type", "Cookie"));
+        configuration.setAllowCredentials(true); // 允許攜帶 Cookie
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -55,11 +56,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity.getSharedObject(AuthenticationManagerBuilder.class).build();
+        return new BCryptPasswordEncoder(12);
     }
 }

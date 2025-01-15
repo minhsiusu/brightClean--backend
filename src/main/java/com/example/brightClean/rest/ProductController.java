@@ -27,21 +27,20 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/product")
 @Tag(name = "product")
 public class ProductController {
-    
+
     @Autowired
     private ProductService productService;
 
     @Autowired
     private ProductRepository productRepository;
 
-    
     @GetMapping("/get")
     public Product findProductById(@RequestParam("id") Integer id) {
         return productService.findProductById(id).get();
     }
-    
+
     @GetMapping("/getall")
-    public List<Product> findProducts(){
+    public List<Product> findProducts() {
         return productService.findProducts();
     }
 
@@ -52,7 +51,7 @@ public class ProductController {
     }
 
     @GetMapping("/{page}/{rows}")
-    public List<Product> findAllBySales(@PathVariable("page") int page, @PathVariable("rows") int rows){
+    public List<Product> findAllBySales(@PathVariable("page") int page, @PathVariable("rows") int rows) {
 
         Pageable pageable = PageRequest.of(page, rows, Sort.by("id"));
         return productRepository.findAll(pageable).getContent();
@@ -62,10 +61,15 @@ public class ProductController {
     public List<Product> findProductByType(@RequestParam("type") String type) {
         return productService.findProductsByType(type);
     }
-    
+
     @GetMapping("/getsalses")
     public List<Product> getAllBySales() {
         return productService.findProductsBySalses();
     }
-    
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam("keyword") String keyword) {
+        List<Product> products = productService.searchProducts(keyword);
+        return ResponseEntity.ok(products);
+    }
 }

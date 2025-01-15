@@ -8,9 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.example.brightClean.domain.Cart;
 
 @Repository
-public interface CartRepository extends JpaRepository<Cart,Integer>{
+public interface CartRepository extends JpaRepository<Cart, Integer> {
     @Query("SELECT c FROM Cart c WHERE c.user.id = :userId")
     public Cart findCartByUserId(@Param("userId") Integer userId);
-
-    
 }

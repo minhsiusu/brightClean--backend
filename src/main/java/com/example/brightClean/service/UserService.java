@@ -10,9 +10,9 @@ import com.example.brightClean.domain.User;
 import com.example.brightClean.domain.params.UserParam;
 
 public interface UserService {
-     
+
     User create(User user);
-    
+
     Optional<User> findUserById(int id);
 
     @NonNull
@@ -25,7 +25,7 @@ public interface UserService {
 
     List<User> findUsers();
 
-    void update(User user)throws Exception;
+    void update(User user) throws Exception;
 
     @NonNull
     Optional<User> findByEmail(@NonNull String email);
@@ -33,7 +33,7 @@ public interface UserService {
     @NonNull
     Optional<User> findByCellPhone(@NonNull String cellphone);
 
-    void createUser(UserParam userParam)throws Exception;
+    void createUser(UserParam userParam) throws Exception;
 
     User findUserByJWT(String jwt) throws Exception;
 }
