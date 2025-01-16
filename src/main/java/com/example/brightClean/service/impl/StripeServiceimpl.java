@@ -12,6 +12,8 @@ import com.stripe.model.Event;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 import org.hibernate.property.access.spi.SetterMethodImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,16 +24,20 @@ import java.util.Map;
 
 @Service
 public class StripeServiceimpl implements StripeService {
+
+    // 加載 .env 文件
+    private static final Dotenv dotenv = Dotenv.load();
     // Stripe Webhook 秘鑰 90 天
+    // 從 .env 文件中讀取密鑰
+    private static final String STRIPE_ENDPOINT_SECRET = dotenv.get("STRIPE_ENDPOINT_SECRET");
+    private static final String STRIPE_API_KEY = dotenv.get("STRIPE_API_KEY");
     private final OrderService orderService;
-    private static final String STRIPE_ENDPOINT_SECRET = "whsec_4308112d34bc04fdb6f85d7fe81605ce41139bcc27eef70fa50f95615d288483";
     private CartService cartService;
     static {
-        Stripe.apiKey = "sk_test_51QaeJUAnLN08E3ddYvEaG7LAER0fEhFNHSCdhpMy09c83nJXHI2YCwrZcmmzlX8nriQRUnvVyO4ZBNrmn3vnLUVi00AR0aAMj4"; // Stripe
-                                                                                                                                       // 測試金鑰
+        Stripe.apiKey = STRIPE_API_KEY; // Stripe
+                                        // 測試金鑰
     }
 
-    @Autowired
     public StripeServiceimpl(OrderService orderService, CartService cartService) {
         this.orderService = orderService;
         this.cartService = cartService;

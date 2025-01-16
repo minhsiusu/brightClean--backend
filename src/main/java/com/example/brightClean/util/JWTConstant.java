@@ -13,4 +13,6 @@ public class JWTConstant {
     public static final String SECRET = dotenv.get("JWT_CONSTANT");
     public static final String M_SECRET = dotenv.get("MAIL_CONSTANT");
     public static final String REGISTER_CONSTANT = dotenv.get("REGISTER_CONSTANT");
+    public static final String STRIPE_ENDPOINT_SECRET = dotenv.get("STRIPE_ENDPOINT_SECRET");
+    public static final String STRIPE_API_KEY = dotenv.get("STRIPE_API_KEY");
 }
